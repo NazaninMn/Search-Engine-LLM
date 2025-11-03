@@ -1,33 +1,24 @@
-# ================================
-# 🧩 Core Framework Components
-# ================================
+# --- Core Framework ---
 streamlit>=1.36.0
 python-dotenv
-langchain>=0.2.0
-langchain-community>=0.2.0
-langchain-hub>=0.1.0
-langchain-core>=0.2.0
+langchain>=0.2.10
+langchain-community>=0.2.10
+langchain-core>=0.2.10
 
-# ================================
-# ⚙️ Model / API Integrations
-# ================================
+# --- Model / API Integrations ---
 langchain-groq>=0.1.0
 langchain-openai>=0.1.0
 langchain-huggingface>=0.1.0
 openai
 
-# ================================
-# 🔎 Search & Knowledge Tools
-# ================================
+# --- Search & Knowledge Tools ---
 duckduckgo-search>=5.3.1b1
 arxiv
 wikipedia
 youtube-transcript-api
 unstructured
 
-# ================================
-# 🧠 Utility / Data Libraries
-# ================================
+# --- Utilities ---
 validators==0.28.1
 huggingface-hub
 pypdf
@@ -37,9 +28,7 @@ pytube
 sentence-transformers
 pydantic
 
-# ================================
-# 💾 Optional (if you use notebooks or analytics)
-# ================================
+# --- Optional (local analytics/testing) ---
 pandas
 numexpr
 ipykernel
