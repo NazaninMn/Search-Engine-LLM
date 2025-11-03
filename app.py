@@ -6,7 +6,7 @@ import streamlit as st
 from langchain_groq import ChatGroq
 from langchain_community.utilities import ArxivAPIWrapper, WikipediaAPIWrapper
 from langchain_community.tools import ArxivQueryRun, WikipediaQueryRun, DuckDuckGoSearchRun
-from langchain_hub import LangChainHubClient   # ✅ Correct modern import
+from langchain.hub import LangChainHubClient
 from langchain.agents import create_react_agent, AgentExecutor
 from langchain.callbacks import StreamlitCallbackHandler
 import os
@@ -101,3 +101,4 @@ if user_input := st.chat_input("Ask me anything (e.g., 'What is quantum computin
 
         st.session_state.messages.append({"role": "assistant", "content": final_answer})
         st.write(final_answer)
+
