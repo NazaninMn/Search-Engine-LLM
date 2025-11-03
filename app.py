@@ -2,7 +2,7 @@ import streamlit as st
 from langchain_groq import ChatGroq
 from langchain_community.utilities import ArxivAPIWrapper, WikipediaAPIWrapper
 from langchain_community.tools import ArxivQueryRun, WikipediaQueryRun, DuckDuckGoSearchRun
-from langchain import hub
+from langchainhub import hub
 from langchain.agents import create_react_agent, AgentExecutor
 from langchain.callbacks import StreamlitCallbackHandler
 import os
@@ -52,3 +52,4 @@ if user_input := st.chat_input("Ask me anything!"):
         final_answer = response.get("output", "[No response generated]")
         st.session_state.messages.append({"role": "assistant", "content": final_answer})
         st.write(final_answer)
+
