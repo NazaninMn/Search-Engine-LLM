@@ -2,7 +2,7 @@ import streamlit as st
 from langchain_groq import ChatGroq
 from langchain_community.utilities import ArxivAPIWrapper, WikipediaAPIWrapper
 from langchain_community.tools import ArxivQueryRun, WikipediaQueryRun, DuckDuckGoSearchRun
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate   # ✅ correct new import
 from langchain.agents import create_react_agent, AgentExecutor
 from langchain.callbacks import StreamlitCallbackHandler
 from dotenv import load_dotenv
@@ -39,7 +39,7 @@ if user_input := st.chat_input("Ask your question..."):
 
     llm = ChatGroq(groq_api_key=api_key, model_name="Llama3-8b-8192", streaming=True)
 
-    # Simple ReAct-style prompt (no Hub)
+    # ✅ Corrected import for new modular LangChain
     react_prompt = PromptTemplate.from_template(
         "You are a helpful research assistant with web access.\n"
         "Use the available tools to find accurate information.\n\n"
