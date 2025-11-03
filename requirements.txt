@@ -1,32 +1,41 @@
+streamlit
+# Core LangChain Components
 langchain
-python-dotenv
-ipykernel
+langchain-core
 langchain-community
-pypdf
-bs4
-arxiv
-pymupdf
-wikipedia
 langchain-text-splitters
-langchain-openai
-chromadb
-sentence_transformers
-langchain_huggingface
-faiss-cpu
-langchain_chroma
-duckdb
-pandas
+pydantic # Explicitly include for data validation
+
+# Model/API Integrations
 openai
+langchain-openai
 langchain-groq
-duckduckgo_search==5.3.1b1
-pymupdf
+langchain-huggingface
+
+# Utilities/Tools
+duckduckgo-search # Use the stable name without fixed version unless necessary
 arxiv
 wikipedia
+youtube-transcript-api
+unstructured
+
+# Databases/Vector Stores
+chromadb
+langchain-chroma
+faiss-cpu
+duckdb
 mysql-connector-python
 SQLAlchemy
-validators==0.28.1
-youtube_transcript_api
-unstructured
-pytube
+
+# Data Handling & Other
+pandas
 numexpr
-huggingface_hub
+ipykernel
+python-dotenv
+pymupdf
+pypdf
+bs4
+sentence-transformers
+huggingface-hub
+validators==0.28.1
+pytube
