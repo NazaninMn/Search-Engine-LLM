@@ -1,10 +1,16 @@
+# Core Framework
 streamlit>=1.36.0
 python-dotenv
+
+# LangChain ecosystem (modular)
 langchain>=0.2.10
+langchain-core>=0.2.10
 langchain-community>=0.2.10
 langchain-groq>=0.1.0
 langchain-openai>=0.1.0
 langchain-huggingface>=0.1.0
+
+# Tools & Utilities
 duckduckgo-search>=5.3.1b1
 arxiv
 wikipedia
