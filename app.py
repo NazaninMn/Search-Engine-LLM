@@ -1,8 +1,10 @@
 import streamlit as st
 from langchain_groq import ChatGroq
 from langchain_community.utilities import ArxivAPIWrapper, WikipediaAPIWrapper
-from langchain_community.tools import ArxivQueryRun, WikipediaQueryRun, DuckDuckGoSearchRun
+from langchain_community.tools import ArxivQueryRun, WikipediaQueryRun
 import traceback
+import requests
+from bs4 import BeautifulSoup
 
 ## Arxiv and Wikipedia Tools
 arxiv_wrapper = ArxivAPIWrapper(top_k_results=1, doc_content_chars_max=200)
@@ -11,7 +13,31 @@ arxiv = ArxivQueryRun(api_wrapper=arxiv_wrapper)
 api_wrapper = WikipediaAPIWrapper(top_k_results=1, doc_content_chars_max=200)
 wiki = WikipediaQueryRun(api_wrapper=api_wrapper)
 
-search = DuckDuckGoSearchRun(name="Search")
+# Simple web search function using DuckDuckGo Lite (no API needed)
+def simple_web_search(query, num_results=3):
+    """Simple web search using DuckDuckGo HTML"""
+    try:
+        url = f"https://lite.duckduckgo.com/lite/?q={requests.utils.quote(query)}"
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+        response = requests.get(url, headers=headers, timeout=10)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        results = []
+        for result in soup.find_all('tr')[:num_results*2]:  # Get more rows to filter
+            links = result.find_all('a', class_='result-link')
+            snippets = result.find_all('td', class_='result-snippet')
+            
+            if links and snippets:
+                title = links[0].get_text(strip=True)
+                snippet = snippets[0].get_text(strip=True)
+                if title and snippet:
+                    results.append(f"{title}: {snippet}")
+        
+        return "\n\n".join(results[:num_results]) if results else "No results found"
+    except Exception as e:
+        return f"Search error: {str(e)}"
 
 st.title("🔎 LangChain - Chat with search")
 """
@@ -43,8 +69,8 @@ for msg in st.session_state.messages:
 def use_tool(tool_name, query):
     """Execute a tool based on its name"""
     try:
-        if "search" in tool_name.lower() or "duckduckgo" in tool_name.lower():
-            return search.run(query)
+        if "search" in tool_name.lower() or "web" in tool_name.lower():
+            return simple_web_search(query)
         elif "arxiv" in tool_name.lower():
             return arxiv.run(query)
         elif "wiki" in tool_name.lower():
