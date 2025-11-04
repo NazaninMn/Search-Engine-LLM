@@ -2,8 +2,6 @@ import streamlit as st
 from langchain_groq import ChatGroq
 from langchain_community.utilities import ArxivAPIWrapper, WikipediaAPIWrapper
 from langchain_community.tools import ArxivQueryRun, WikipediaQueryRun, DuckDuckGoSearchRun
-from langchain.callbacks import StreamlitCallbackHandler
-from langchain_core.messages import HumanMessage, AIMessage
 import traceback
 
 ## Arxiv and Wikipedia Tools
@@ -17,8 +15,7 @@ search = DuckDuckGoSearchRun(name="Search")
 
 st.title("🔎 LangChain - Chat with search")
 """
-In this example, we're using `StreamlitCallbackHandler` to display the thoughts and actions of an agent in an interactive Streamlit app.
-Try more LangChain 🤝 Streamlit Agent examples at [github.com/langchain-ai/streamlit-agent](https://github.com/langchain-ai/streamlit-agent).
+An interactive chatbot that can search the web, query ArXiv papers, and search Wikipedia using LangChain and Groq.
 """
 
 ## Sidebar for settings
