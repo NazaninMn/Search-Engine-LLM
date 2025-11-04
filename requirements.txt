@@ -5,4 +5,5 @@ langchain-community
 langchain-core
 arxiv
 wikipedia
-duckduckgo-search
+requests
+beautifulsoup4
