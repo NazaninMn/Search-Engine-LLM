@@ -2,8 +2,8 @@ import streamlit as st
 from langchain_groq import ChatGroq
 from langchain_community.utilities import ArxivAPIWrapper, WikipediaAPIWrapper
 from langchain_community.tools import ArxivQueryRun, WikipediaQueryRun, DuckDuckGoSearchRun
-from langchain.agents import create_react_agent, AgentExecutor
-from langchain import hub
+from langchain.agents import AgentExecutor, create_tool_calling_agent
+from langchain_core.prompts import ChatPromptTemplate
 from langchain.callbacks import StreamlitCallbackHandler
 
 ## Arxiv and Wikipedia Tools
@@ -57,39 +57,15 @@ if prompt := st.chat_input(placeholder="What is machine learning?"):
     llm = ChatGroq(groq_api_key=api_key, model_name="Llama3-8b-8192", streaming=True)
     tools = [search, arxiv, wiki]
     
-    # Get the react prompt template
-    try:
-        react_prompt = hub.pull("hwchase17/react")
-    except:
-        # Fallback prompt if hub is not accessible
-        from langchain.prompts import PromptTemplate
-        template = """Answer the following questions as best you can. You have access to the following tools:
-
-{tools}
-
-Use the following format:
-
-Question: the input question you must answer
-Thought: you should always think about what to do
-Action: the action to take, should be one of [{tool_names}]
-Action Input: the input to the action
-Observation: the result of the action
-... (this Thought/Action/Action Input/Observation can repeat N times)
-Thought: I now know the final answer
-Final Answer: the final answer to the original input question
-
-Begin!
-
-Question: {input}
-Thought:{agent_scratchpad}"""
-        
-        react_prompt = PromptTemplate(
-            template=template,
-            input_variables=["input", "tools", "tool_names", "agent_scratchpad"]
-        )
+    # Create prompt template
+    prompt_template = ChatPromptTemplate.from_messages([
+        ("system", "You are a helpful assistant. Use the available tools to answer questions."),
+        ("human", "{input}"),
+        ("placeholder", "{agent_scratchpad}"),
+    ])
     
     # Create agent
-    agent = create_react_agent(llm, tools, react_prompt)
+    agent = create_tool_calling_agent(llm, tools, prompt_template)
     agent_executor = AgentExecutor(
         agent=agent,
         tools=tools,
