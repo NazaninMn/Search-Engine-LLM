@@ -2,9 +2,9 @@ import streamlit as st
 from langchain_groq import ChatGroq
 from langchain_community.utilities import ArxivAPIWrapper, WikipediaAPIWrapper
 from langchain_community.tools import ArxivQueryRun, WikipediaQueryRun, DuckDuckGoSearchRun
-from langchain.agents import AgentExecutor, create_tool_calling_agent
-from langchain_core.prompts import ChatPromptTemplate
 from langchain.callbacks import StreamlitCallbackHandler
+from langchain_core.messages import HumanMessage, AIMessage
+import traceback
 
 ## Arxiv and Wikipedia Tools
 arxiv_wrapper = ArxivAPIWrapper(top_k_results=1, doc_content_chars_max=200)
@@ -42,6 +42,21 @@ if "messages" not in st.session_state:
 for msg in st.session_state.messages:
     st.chat_message(msg["role"]).write(msg['content'])
 
+# Simple tool execution function
+def use_tool(tool_name, query):
+    """Execute a tool based on its name"""
+    try:
+        if "search" in tool_name.lower() or "duckduckgo" in tool_name.lower():
+            return search.run(query)
+        elif "arxiv" in tool_name.lower():
+            return arxiv.run(query)
+        elif "wiki" in tool_name.lower():
+            return wiki.run(query)
+        else:
+            return "Tool not found"
+    except Exception as e:
+        return f"Error using tool: {str(e)}"
+
 # Chat input
 if prompt := st.chat_input(placeholder="What is machine learning?"):
     # Check if API key is provided
@@ -53,40 +68,71 @@ if prompt := st.chat_input(placeholder="What is machine learning?"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     st.chat_message("user").write(prompt)
     
-    # Initialize LLM and tools
+    # Initialize LLM
     llm = ChatGroq(groq_api_key=api_key, model_name="Llama3-8b-8192", streaming=True)
-    tools = [search, arxiv, wiki]
-    
-    # Create prompt template
-    prompt_template = ChatPromptTemplate.from_messages([
-        ("system", "You are a helpful assistant. Use the available tools to answer questions."),
-        ("human", "{input}"),
-        ("placeholder", "{agent_scratchpad}"),
-    ])
-    
-    # Create agent
-    agent = create_tool_calling_agent(llm, tools, prompt_template)
-    agent_executor = AgentExecutor(
-        agent=agent,
-        tools=tools,
-        verbose=True,
-        handle_parsing_errors=True,
-        max_iterations=5
-    )
     
     # Generate response
     with st.chat_message("assistant"):
-        st_cb = StreamlitCallbackHandler(st.container(), expand_new_thoughts=False)
+        st_container = st.container()
+        
         try:
-            response = agent_executor.invoke(
-                {"input": prompt},
-                {"callbacks": [st_cb]}
-            )
-            answer = response['output']
-            st.session_state.messages.append({'role': 'assistant', "content": answer})
-            st.write(answer)
+            # Create a system message explaining available tools
+            system_prompt = """You are a helpful assistant with access to the following tools:
+1. Search (DuckDuckGo) - for web searches
+2. ArXiv - for searching academic papers
+3. Wikipedia - for encyclopedia information
+
+When you need information, think about which tool to use and tell me. I'll execute it for you.
+Answer questions directly when you can, or suggest which tool to use for more information."""
+
+            # Simple approach: Ask LLM if it needs tools
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt}
+            ]
+            
+            with st_container:
+                response = llm.invoke(messages)
+                answer = response.content
+                
+                # Check if the response suggests using a tool
+                if any(keyword in answer.lower() for keyword in ["search", "arxiv", "wikipedia", "look up", "find"]):
+                    st.info("🔍 Searching for information...")
+                    
+                    # Try to use relevant tools
+                    search_results = []
+                    if "arxiv" in answer.lower() or "paper" in answer.lower() or "research" in answer.lower():
+                        st.write("📚 Searching ArXiv...")
+                        result = use_tool("arxiv", prompt)
+                        search_results.append(("ArXiv", result))
+                    
+                    if "wikipedia" in answer.lower() or "wiki" in answer.lower():
+                        st.write("📖 Searching Wikipedia...")
+                        result = use_tool("wiki", prompt)
+                        search_results.append(("Wikipedia", result))
+                    
+                    # Default to web search
+                    if not search_results or "search" in answer.lower():
+                        st.write("🌐 Searching the web...")
+                        result = use_tool("search", prompt)
+                        search_results.append(("Web Search", result))
+                    
+                    # Synthesize answer with search results
+                    if search_results:
+                        context = "\n\n".join([f"{name}: {result[:500]}" for name, result in search_results])
+                        final_messages = [
+                            {"role": "system", "content": "You are a helpful assistant. Use the following search results to answer the user's question."},
+                            {"role": "user", "content": f"Question: {prompt}\n\nSearch Results:\n{context}\n\nProvide a comprehensive answer based on these results."}
+                        ]
+                        final_response = llm.invoke(final_messages)
+                        answer = final_response.content
+                
+                st.session_state.messages.append({'role': 'assistant', "content": answer})
+                st.write(answer)
+                
         except Exception as e:
-            st.error(f"An error occurred: {str(e)}")
+            error_msg = f"An error occurred: {str(e)}\n\n{traceback.format_exc()}"
+            st.error(error_msg)
             st.session_state.messages.append({
                 'role': 'assistant',
                 "content": f"Sorry, I encountered an error: {str(e)}"
