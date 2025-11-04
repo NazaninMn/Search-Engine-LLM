@@ -1,8 +1,8 @@
-# Core Framework
+# Core
 streamlit>=1.36.0
 python-dotenv
 
-# LangChain ecosystem (modular)
+# LangChain (modular)
 langchain>=0.2.10
 langchain-core>=0.2.10
 langchain-community>=0.2.10
